@@ -3,6 +3,40 @@ const User = require('../models/user');
 const config = require('../config');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
+const LocalStrategy = require('passport-local');
+
+//Create the local Strategy
+//LocalStrategy assumes it is going to be passed a user name and password, by default. So we have to tell it that instead of a username, to use an email.
+const localOptions = { usernameField: 'email' };
+//After LocalStrategy parses the request, it will pass the email and password into the callback function
+const localLogin = new LocalStrategy(localOptions, function(email, password, done) {
+  //Verify email and PW are stored in DB, call done with the user record
+  User.findOne({ email: email }, function(err, user) {
+    //if error when trying to access Database
+    if (err) {
+      return done(err);
+    }
+
+    //If not stored in the DB call done with false
+    if (!user) {
+      return done(null, false);
+    }
+
+    //if record was found with matching email, now match password from request with password in record
+    //comparePassword method was added to the userSchema in the user.js file, so it is available on the returned record
+    user.comparePassword(password, function(err, isMatch) {
+      if (err) {
+        return done(err);
+      }
+      if (!isMatch) {
+        return done(null, false);
+      }
+
+      //assigns the user model that was pulled from the DB to req.user
+      return done(null, user);
+    });
+  });
+});
 
 //Setup options for JWT JWTStrategy
 //JWTs can sit anywhere in a request, header, body, and etc.
@@ -28,6 +62,7 @@ const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
     //If it does, call 'done' with that user object
     //if user record exists, err is null and pass done the record
     if (user) {
+      //assigns the user model that was pulled from the DB to req.user
       done(null, user);
       //otherwise, call done without a user object
       //if user is not found, err is null because there wasn't error, but done is passed false instead
@@ -37,5 +72,6 @@ const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
   });
 });
 
-//Tell passport to use this strategy
+//Tell passport to use these strategies
 passport.use(jwtLogin);
+passport.use(localLogin);

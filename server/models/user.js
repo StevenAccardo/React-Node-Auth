@@ -36,8 +36,20 @@ userSchema.pre('save', function(next) {
   });
 });
 
-// Creates the model class, so that we can create new users
+//Whenever we create a user object, it will have access to any methods we define on this methods property.
+userSchema.methods.comparePassword = function(candidatePassword, callback) {
+  //this is a reference to our user model, so this.password stores the salted + hashed password
+  //bcrypt is salting and hashing the candidate pw and then comparing it to the one we have in the record. It is not decoding the pw in the record to match the two string passwords.
+  bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+    if (err) {
+      return callback(err);
+    }
 
+    callback(null, isMatch);
+  });
+};
+
+// Creates the model class, so that we can create new users
 //This loads the Schema into mongoose. The first arg is the name of the mongo collection in which the Schema will be appliaed, the 2nd arg is the Schema that we just created above.
 const ModelClass = mongoose.model('user', userSchema);
 
