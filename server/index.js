@@ -8,7 +8,6 @@ const morgan = require('morgan');
 const app = express();
 const router = require('./router');
 const mongoose = require('mongoose');
-const cors = require('cors');
 
 // DB Setup
 //connects mongoose to our instance of mongoDB, which right now is on our local machine.
@@ -24,8 +23,6 @@ db.once('open', function() {
 //express middlewares
 //morgan is a logging framework, use it for debugging
 app.use(morgan('combined'));
-//Allows requests to come in from any url. Can pass options to retrict access
-app.use(cors());
 app.use(bodyParser.json({ type: '*/*' }));
 
 router(app);
