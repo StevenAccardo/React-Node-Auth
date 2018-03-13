@@ -12,7 +12,7 @@ const requireSignin = passport.authenticate('local', { session: false });
 module.exports = function(app) {
   //any post request from /signup will be handled by the signup function in the authentication controller file
   app.get('/', requireAuth, function(req, res) {
-    res.send({ hi: 'there' });
+    res.send({ message: 'Super secret code is ABC123' });
   });
   //requires the request to go through middleware, where the user will have to be authenticated via requireSignin before it is passed to the route handler Authentication.signin
   app.post('/signin', requireSignin, Authentication.signin);
